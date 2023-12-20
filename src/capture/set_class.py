@@ -24,3 +24,4 @@ class MyCudaStruct:
     def shape(self, key):
         # 辞書の画像サイズを取得
         return self.shapedict[key]
+

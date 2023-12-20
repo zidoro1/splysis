@@ -38,7 +38,7 @@ def getCrd(img, templ, gpu_dst, pattern):
     return ret, x, y, max_val
 
 # 複数のテンプレート画像の辞書とマッチングして、マッチングしたkeyだけを返す関数
-def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
+def getExist(gpu_img, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
 
     # テンプレートマッチングの許容閾値
     threshold = {"stage": 0.7, "match": 0.7, "rule": 0.7, "mark": 0.7, "buki": 0.7}
@@ -58,7 +58,7 @@ def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
     ls_exist  = []
     max_score = 0
     for key in dic_gpu_templ.log():
-        gpu_dst    = matcher.match(gpu_src, dic_gpu_templ.get(key))
+        gpu_dst    = matcher.match(gpu_img, dic_gpu_templ.get(key))
         result     = gpu_dst.download()
         _, max_val, _, max_idx = cv2.minMaxLoc(result)
         if max_score < max_val:
@@ -73,7 +73,7 @@ def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
     return ret, ls_exist
 
 # 数値を採取する関数
-def getNum(img, templ:MyCudaStruct, gpu_dst, pattern):
+def getNum(gpu_img, dic_gpu_templ:MyCudaStruct, gpu_dst, pattern):
 
     pixel     = {"ymdhm": 8,    "np": 8,    "score": 6,    "sp": 7}    # 数値の位の間にあるべき最小限のpixel幅
     maximum   = {"ymdhm": 12,   "np": 4,    "score": 2,    "sp": 2}    # 数値の桁数上限
@@ -94,14 +94,14 @@ def getNum(img, templ:MyCudaStruct, gpu_dst, pattern):
     
     dic_match_score = {}
     dic_match_range = []
-    for key in templ.log():
-        gpu_dst = matcher.match(img, templ.get(key))
+    for key in dic_gpu_templ.log():
+        gpu_dst = matcher.match(gpu_img, dic_gpu_templ.get(key))
         result     = gpu_dst.download()
         dic_match_score[key] = result       # ソース画像すべての領域のマッチングスコアを数字の数だけ保存
         _, max_val, _, _ = cv2.minMaxLoc(result) # 検証用
         match_y, match_x = np.where(result >= threshold[pattern])
         for x, y in zip(match_x, match_y):
-            dic_match_range.append([x, y, templ.shape(key)[1], templ.shape(key)[0]])
+            dic_match_range.append([x, y, dic_gpu_templ.shape(key)[1], dic_gpu_templ.shape(key)[0]])
         
         #print(key, "\n", dic_match_range)
 
@@ -119,7 +119,7 @@ def getNum(img, templ:MyCudaStruct, gpu_dst, pattern):
         for x in sort_rec:
             match_score = 0
             max_score   = 0
-            for key in templ.log():
+            for key in dic_gpu_templ.log():
                 try:
                     match_score = dic_match_score[key][x[1]][x[0]]
                 except Exception as e:

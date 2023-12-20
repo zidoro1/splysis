@@ -25,28 +25,15 @@ def getCrdCpu(img, templ, pattern):
     return ret, x, y, max_val
 
 # 複数のテンプレート画像の辞書とマッチングして、マッチングしたkeyだけを返す関数
-def getExistCpu(src, dic_templ, pattern):
+def getExistCpu(img, dic_templ: dict, pattern):
 
     # テンプレートマッチングの許容閾値
     threshold = {"stage": 0.7, "match": 0.7, "rule": 0.7, "mark": 0.7, "buki": 0.7}
-
-    #cv2.TM_CCOEFF_NORMEDで正規化相互相関演算を行い、結果をresultに格納
-    matcher = cv2.cuda.createTemplateMatching(
-        cv2.CV_8UC1,
-        # 類似度の計算方法
-        #cv2.TM_SQDIFF         # 二乗差
-        #cv2.TM_SQDIFF_NORMED  # 正規化二乗差
-        #cv2.TM_CCORR          # 相互相関
-        #cv2.TM_CCORR_NORMED   # 正規化相互相関
-        #cv2.TM_CCOEFF         # 相関係数
-        cv2.TM_CCOEFF_NORMED   # 正規化相関係数
-    )
     
     ls_exist  = []
     max_score = 0
-    for key in dic_templ.log():
-        gpu_dst    = matcher.match(src, dic_gpu_templ.get(key))
-        result     = gpu_dst.download()
+    for key in dic_templ.keys():
+        result  =  cv2.matchTemplate(img, dic_templ[key], cv2.TM_CCOEFF_NORMED)
         _, max_val, _, max_idx = cv2.minMaxLoc(result)
         if max_score < max_val:
             max_score = max_val
@@ -60,35 +47,22 @@ def getExistCpu(src, dic_templ, pattern):
     return ret, ls_exist
 
 # 数値を採取する関数
-def getNumCpu(img, templ, pattern):
+def getNumCpu(img, dic_templ, pattern):
 
     pixel     = {"ymdhm": 8,    "np": 8,    "score": 6,    "sp": 7}    # 数値の位の間にあるべき最小限のpixel幅
     maximum   = {"ymdhm": 12,   "np": 4,    "score": 2,    "sp": 2}    # 数値の桁数上限
     threshold = {"ymdhm": 0.7,  "np": 0.7,  "score": 0.67, "sp": 0.65}
     eps       = {"ymdhm": 0.4,  "np": 0.4,  "score": 0.4,  "sp": 0.4}
 
-    #cv2.TM_CCOEFF_NORMEDで正規化相互相関演算を行い、結果をresultに格納
-    matcher = cv2.cuda.createTemplateMatching(
-        cv2.CV_8UC1,
-        # 類似度の計算方法
-        #cv2.TM_SQDIFF         # 二乗差
-        #cv2.TM_SQDIFF_NORMED  # 正規化二乗差
-        #cv2.TM_CCORR          # 相互相関
-        #cv2.TM_CCORR_NORMED   # 正規化相互相関
-        #cv2.TM_CCOEFF         # 相関係数
-        cv2.TM_CCOEFF_NORMED   # 正規化相関係数
-    )    
-    
     dic_match_score = {}
     dic_match_range = []
-    for key in templ.log():
-        gpu_dst = matcher.match(img, templ.get(key))
-        result     = gpu_dst.download()
+    for key in dic_templ.keys():
+        result  =  cv2.matchTemplate(img, dic_templ, cv2.TM_CCOEFF_NORMED)
         dic_match_score[key] = result       # ソース画像すべての領域のマッチングスコアを数字の数だけ保存
         _, max_val, _, _ = cv2.minMaxLoc(result) # 検証用
         match_y, match_x = np.where(result >= threshold[pattern])
         for x, y in zip(match_x, match_y):
-            dic_match_range.append([x, y, templ.shape(key)[1], templ.shape(key)[0]])
+            dic_match_range.append([x, y, dic_templ[key].shape[1], dic_templ[key].shape[0]])
         
         #print(key, "\n", dic_match_range)
 
@@ -106,7 +80,7 @@ def getNumCpu(img, templ, pattern):
         for x in sort_rec:
             match_score = 0
             max_score   = 0
-            for key in templ.log():
+            for key in dic_templ.keys():
                 try:
                     match_score = dic_match_score[key][x[1]][x[0]]
                 except Exception as e:
@@ -189,12 +163,11 @@ if __name__ == "__main__":
         # num_0.png -> "num_0": "C:~/~~/~/num_0.png" 
         dic_fname_path[key] = {os.path.splitext(f)[0]: os.path.join(value, f) for f in os.listdir(value) if os.path.isfile(os.path.join(value, f))}
 
-    templ_gpu_ymdhm = MyCudaStruct()
-    templ_gpu_np    = MyCudaStruct()
-    templ_gpu_score = MyCudaStruct()
-    templ_gpu_buki  = MyCudaStruct()
-    frame_gpu_trim  = cv2.cuda_GpuMat()
-    gpu_dst         = cv2.cuda_GpuMat()
+    templ_gpu_ymdhm = {}
+    templ_gpu_np    = {}
+    templ_gpu_score = {}
+    templ_gpu_buki  = {}
+    frame_gpu_trim  = []
 
     trim = {
         "h" : [  59,  180,  800, 1500],  # ヘッダー
@@ -213,16 +186,12 @@ if __name__ == "__main__":
     templ_img = {}
     for fname, path in dic_fname_path["ymdhm"].items():
         templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        templ_gpu_ymdhm.set(fname, templ_img[fname])
     for fname, path in dic_fname_path["np"].items():
         templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        templ_gpu_np.set(fname, templ_img[fname])
     for fname, path in dic_fname_path["score"].items():
         templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        templ_gpu_score.set(fname, templ_img[fname])
     for fname, path in dic_fname_path["buki"].items():
         templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        templ_gpu_buki.set(fname, templ_img[fname])
 
 
     #"""
@@ -230,21 +199,21 @@ if __name__ == "__main__":
     j = "6"
     src_gry = cv2.imread(os.path.join(in_dir, "01.png"),   cv2.IMREAD_GRAYSCALE)
     frame_trim = src_gry[trim[j][0]:trim[j][1], trim[j][2]:trim[j][3]]
-    frame_gpu_trim.upload(frame_trim)
 
-    a, b = getExistCpu(frame_gpu_trim, templ_gpu_buki, gpu_dst, pattern="buki")
+    a, b = getExistCpu(frame_gpu_trim, templ_gpu_buki, pattern="buki")
     print("num: ", a, b)
     #print("sort_rec: \n", b)
 
     for x in b:
-        cv2.rectangle(frame_trim, 
-                      (x[0], x[1]),
-                      (x[0]+x[2], x[1]+x[3]),
-                      color=(255, 255, 255),
-                      thickness=2,
-                      lineType=cv2.LINE_4,
-                      shift=0
-                      )
+        cv2.rectangle(
+            frame_trim, 
+            (x[0], x[1]),
+            (x[0]+x[2], x[1]+x[3]),
+            color=(255, 255, 255),
+            thickness=2,
+            lineType=cv2.LINE_4,
+            shift=0
+        )
 
     cv2.imshow("trim", frame_trim)
     cv2.waitKey()
