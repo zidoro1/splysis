@@ -50,8 +50,8 @@ def save_frames(in_path: str, out_dir: str, ext="png"):
 ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir    = "C:/Users/ntkke/ProjectSplaly/data/sample_video"
+    in_dir    = "../../data/sample_video"
     in_path   = os.path.join(in_dir, sys.argv[1])      # 動画ファイル名 
-    out_dir   = "C:/Users/ntkke/ProjectSplaly/data/sample_video/frame"
+    out_dir   = "../../data/sample_video/frame"
     out_path  = os.path.join(out_dir)  # sample_asariみたいなフォルダ名
     save_frames(in_path, out_path, "png")

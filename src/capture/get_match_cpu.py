@@ -7,24 +7,11 @@ from statistics import mode
 from set_class import MyCudaStruct
 
 # プレイヤー座標を採取する関数
-def getCrd(img, templ, gpu_dst, pattern):
+def getCrdCpu(img, templ, pattern):
     
     threshold = {"player": 0.85, "mark": 0.75, "buki": 0.8}
 
-    #cv2.TM_CCOEFF_NORMEDで正規化相互相関演算を行い、結果をresultに格納
-    matcher = cv2.cuda.createTemplateMatching(
-        cv2.CV_8UC1,
-        # 類似度の計算方法
-        #cv2.TM_SQDIFF         # 二乗差
-        #cv2.TM_SQDIFF_NORMED  # 正規化二乗差
-        #cv2.TM_CCORR          # 相互相関
-        #cv2.TM_CCORR_NORMED   # 正規化相互相関
-        #cv2.TM_CCOEFF         # 相関係数
-        cv2.TM_CCOEFF_NORMED   # 正規化相関係数
-    )    
-
-    gpu_dst = matcher.match(img, templ)
-    result     = gpu_dst.download()
+    result  =  cv2.matchTemplate(img, templ, cv2.TM_CCOEFF_NORMED)
     _, max_val, _, max_idx = cv2.minMaxLoc(result)
 
     if max_val >= threshold[pattern]:
@@ -38,7 +25,7 @@ def getCrd(img, templ, gpu_dst, pattern):
     return ret, x, y, max_val
 
 # 複数のテンプレート画像の辞書とマッチングして、マッチングしたkeyだけを返す関数
-def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
+def getExistCpu(src, dic_templ, pattern):
 
     # テンプレートマッチングの許容閾値
     threshold = {"stage": 0.7, "match": 0.7, "rule": 0.7, "mark": 0.7, "buki": 0.7}
@@ -57,8 +44,8 @@ def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
     
     ls_exist  = []
     max_score = 0
-    for key in dic_gpu_templ.log():
-        gpu_dst    = matcher.match(gpu_src, dic_gpu_templ.get(key))
+    for key in dic_templ.log():
+        gpu_dst    = matcher.match(src, dic_gpu_templ.get(key))
         result     = gpu_dst.download()
         _, max_val, _, max_idx = cv2.minMaxLoc(result)
         if max_score < max_val:
@@ -73,7 +60,7 @@ def getExist(gpu_src, dic_gpu_templ: MyCudaStruct, gpu_dst, pattern):
     return ret, ls_exist
 
 # 数値を採取する関数
-def getNum(img, templ:MyCudaStruct, gpu_dst, pattern):
+def getNumCpu(img, templ, pattern):
 
     pixel     = {"ymdhm": 8,    "np": 8,    "score": 6,    "sp": 7}    # 数値の位の間にあるべき最小限のpixel幅
     maximum   = {"ymdhm": 12,   "np": 4,    "score": 2,    "sp": 2}    # 数値の桁数上限
@@ -182,21 +169,20 @@ def getNum(img, templ:MyCudaStruct, gpu_dst, pattern):
 ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir    = "C:/Users/ntkke/ProjectSplaly/data/sample_frame/sample_result_gry"
-    templ_dir = "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry"
-    out_dir  = "C:/Users/ntkke/ProjectSplaly/splaly"
+    in_dir    = "../../data/sample_frame/sample_result_gry"
+    templ_dir = "../../data/templates/num/num_battlelog_gry"
 
     # テンプレート画像のpathを二次元の辞書型にして一括管理
     dic_templ_dir = {
-        "stage" : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_battlelog_gry",
-        "match" : "C:/Users/ntkke/ProjectSplaly/data/images/match/match_battlelog_gry",
-        "rule"  : "C:/Users/ntkke/ProjectSplaly/data/images/rule/rule_battlelog_gry",
-        "mark"  : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_battlelog_gry",
-        "buki"  : "C:/Users/ntkke/ProjectSplaly/data/images/buki/buki_battlelog_gry",
-        "sp"    : "C:/Users/ntkke/ProjectSplaly/data/images/sp/sp_battlelog_gry",
-        "ymdhm" : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/ymdhm",
-        "np"    : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/np",
-        "score" : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/score"
+        "stage" : "../../data/templates/stage/stage_battlelog_gry",
+        "match" : "../../data/templates/match/match_battlelog_gry",
+        "rule"  : "../../data/templates/rule/rule_battlelog_gry",
+        "mark"  : "../../data/templates/mark/mark_battlelog_gry",
+        "buki"  : "../../data/templates/buki/buki_battlelog_gry",
+        "sp"    : "../../data/templates/sp/sp_battlelog_gry",
+        "ymdhm" : "../../data/templates/num/num_battlelog_gry/ymdhm",
+        "np"    : "../../data/templates/num/num_battlelog_gry/np",
+        "score" : "../../data/templates/num/num_battlelog_gry/score"
     }
     dic_fname_path = {"stage": "v1", "match": "v2", "rule": "v3", "mark": "v4", "buki": "v5", "sp": "v6", "ymdhm": "v7", "np": "v8", "score": "v9"}
     for key, value in dic_templ_dir.items():
@@ -246,7 +232,7 @@ if __name__ == "__main__":
     frame_trim = src_gry[trim[j][0]:trim[j][1], trim[j][2]:trim[j][3]]
     frame_gpu_trim.upload(frame_trim)
 
-    a, b = getExist(frame_gpu_trim, templ_gpu_buki, gpu_dst, pattern="buki")
+    a, b = getExistCpu(frame_gpu_trim, templ_gpu_buki, gpu_dst, pattern="buki")
     print("num: ", a, b)
     #print("sort_rec: \n", b)
 

@@ -54,9 +54,9 @@ def getCrdColor():
     ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir   = "C:/Users/ntkke/ProjectSplaly/data/images/buki/buki_battlelog"
+    in_dir   = "../../data/templates/buki/buki_battlelog"
     #in_path  = os.path.join(in_dir, sys.argv[1] + ".png")
-    out_dir  = "C:/Users/ntkke/ProjectSplaly/data/images/buki/buki_battlelog_gry"
+    out_dir  = "../../data/templates/buki/buki_battlelog_gry"
     #out_path = os.path.join(out_dir, sys.argv[1] + ".png")
 
     """

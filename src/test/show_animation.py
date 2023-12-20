@@ -10,10 +10,10 @@ from matplotlib.animation import FuncAnimation
 # 指定したルール・ステージの画像のpathを与える関数
 def stage_check(rule_name: str, stage_name: str):
     rule_dic ={
-        "asari"  : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_map_asari",
-        "area"   : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_map_area",
-        "hoko"   : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_map_hoko",
-        "yagura" : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_map_yagura" 
+        "asari"  : "../../data/images/stage/stage_map_asari",
+        "area"   : "../../data/images/stage/stage_map_area",
+        "hoko"   : "../../data/images/stage/stage_map_hoko",
+        "yagura" : "../../data/images/stage/stage_map_yagura" 
     }
     stage_dic = {
         "amabi"    : "amabi.png",
@@ -142,9 +142,9 @@ def show_animation(in_path: str, out_path: str):
 ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir   = "C:/Users/ntkke/ProjectSplaly/output/csv"
+    in_dir   = "../../output/csv"
     in_path  = os.path.join(in_dir, sys.argv[1] + ".csv")  
-    out_dir  = "C:/Users/ntkke/ProjectSplaly/output/anime"
+    out_dir  = "../../output/anime"
     out_path = os.path.join(out_dir, sys.argv[1] + ".mp4")
     import timeit
     time_func = timeit.timeit("show_animation(in_path, out_path)", globals=globals(), number=1)

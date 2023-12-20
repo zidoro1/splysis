@@ -20,8 +20,8 @@ def showHist(in_path:str, out_path:str, width=1, pattern="1"):
 ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir   = "C:/Users/ntkke/ProjectSplaly/output/csv"
+    in_dir   = "../../output/csv"
     in_path  = os.path.join(in_dir, sys.argv[1] + ".csv")  
-    out_dir  = "C:/Users/ntkke/ProjectSplaly/output/aanalysis"
+    out_dir  = "../../output/analysis"
     out_path = os.path.join(out_dir, sys.argv[1])
     showHist(in_path, out_path)

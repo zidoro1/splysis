@@ -12,15 +12,15 @@ from get_match import getCrd, getExist, getNum
 def getResult(src_gry):
     # テンプレート画像のpathを二次元の辞書型にして一括管理
     dic_templ_dir = {
-        "stage" : "C:/Users/ntkke/ProjectSplaly/data/images/stage/stage_battlelog_gry",
-        "match" : "C:/Users/ntkke/ProjectSplaly/data/images/match/match_battlelog_gry",
-        "rule"  : "C:/Users/ntkke/ProjectSplaly/data/images/rule/rule_battlelog_gry",
-        "mark"  : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_battlelog_gry",
-        "buki"  : "C:/Users/ntkke/ProjectSplaly/data/images/buki/buki_battlelog_gry",
-        "sp"    : "C:/Users/ntkke/ProjectSplaly/data/images/sp/sp_battlelog_gry",
-        "ymdhm" : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/ymdhm",
-        "np"    : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/np",
-        "score" : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_battlelog_gry/score"
+        "stage" : "../../data/templates/stage/stage_battlelog_gry",
+        "match" : "../../data/templates/match/match_battlelog_gry",
+        "rule"  : "../../data/templates/rule/rule_battlelog_gry",
+        "mark"  : "../../data/templates/mark/mark_battlelog_gry",
+        "buki"  : "../../data/templates/buki/buki_battlelog_gry",
+        "sp"    : "../../data/templates/sp/sp_battlelog_gry",
+        "ymdhm" : "../../data/templates/num/num_battlelog_gry/ymdhm",
+        "np"    : "../../data/templates/num/num_battlelog_gry/np",
+        "score" : "../../data/templates/num/num_battlelog_gry/score"
     }
     dic_fname_path = {"stage": "v1", "match": "v2", "rule": "v3", "mark": "v4", "buki": "v5", "sp": "v6", "ymdhm": "v7", "np": "v8", "score": "v9"}
     for key, value in dic_templ_dir.items():
@@ -161,8 +161,8 @@ def getGraph():
 # コマンドライン実行
 
 if __name__ == "__main__":
-    in_dir_color = "C:/Users/ntkke/ProjectSplaly/data/sample_frame/sample_result"
-    in_dir_gry   = "C:/Users/ntkke/ProjectSplaly/data/sample_frame/sample_result_gry"
+    in_dir_color = "../../data/sample_frame/sample_result"
+    in_dir_gry   = "../../data/sample_frame/sample_result_gry"
     """
     files_gry = [
         os.path.join(in_dir_gry, f) for f in os.listdir(in_dir_gry) if os.path.isfile(os.path.join(in_dir_gry, f))

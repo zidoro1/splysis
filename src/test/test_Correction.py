@@ -1,11 +1,10 @@
-
 import os
 import sys
 import cv2
 import numpy as np
 import pandas as pd
 
-csv_path = "C:/Users/ntkke/ProjectSplaly/output/csv/202312161944.csv"
+csv_path = "../../output/csv/202312161944.csv"
 # CSVファイルの読み込み
 df = pd.read_csv(csv_path, header=12)
 df_data = df

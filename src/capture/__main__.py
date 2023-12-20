@@ -10,16 +10,38 @@ from get_color import cvtGry, getCrdColor
 
 from set_class import MyCudaStruct
 
-def  main(in_path :str, out_path="C:/Users/ntkke/ProjectSplaly/output/csv"):
+"""
+import cv2
+
+capture = cv2.VideoCapture(0)
+print(capture.isOpened())
+capture.set(CAP_PROP_FRAME_WIDTH, 1920)
+capture.set(CAP_PROP_FRAME_HEIGH, 1080)
+capture.set(CAP_PROP_FPS,            4)
+
+while(True):
+    ret, frame = capture.read()
+    cv2.imshow('frame', frame)
+
+    # "q"キー または ctrl + C でキャプチャ停止
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+        
+capture.release()
+cv2.destroyAllWindows()
+"""
+
+
+def  main(in_path :str, out_path="../../output/csv"):
 
     dic_templ_dir = {
-        "StoF"   : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_StoF_gry",
-        "result" : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_battlelog_gry",
-        "graph"  : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_graph_gry",
-        "player" : "C:/Users/ntkke/ProjectSplaly/data/images/player/player_game_gry",
-        "sp"     : "C:/Users/ntkke/ProjectSplaly/data/images/num/num_sp_gry_m",
-        "buki"   : "C:/Users/ntkke/ProjectSplaly/data/images/buki",
-        "life"   : "C:/Users/ntkke/ProjectSplaly/data/images/mark/mark_life_gry"
+        "StoF"   : "../../data/templates/mark/mark_StoF_gry",
+        "result" : "../../data/templates/mark/mark_battlelog_gry",
+        "graph"  : "../../data/templates/mark/mark_graph_gry",
+        "player" : "../../data/templates/player/player_game_gry",
+        "sp"     : "../../data/templates/num/num_sp_gry_m",
+        "buki"   : "../../data/templates/buki",
+        "life"   : "../../data/templates/mark/mark_life_gry"
     }
 
     # テンプレート画像のpathを一括管理
@@ -197,7 +219,7 @@ def  main(in_path :str, out_path="C:/Users/ntkke/ProjectSplaly/output/csv"):
         # 試合中データの採取 
         for key in p_is.keys():
             # プレイヤーの生死判定( 生:0 or 死:1 )
-            # ******* プレイヤーをリンクしていないので、めんどくさい *******
+            # ******* リザルトのプレイヤーの並びとイカランプの並びは異なる。csvの入力後にpandasで修正する *******
             frame_gpu_trim.upload(frame_gry[trim_lamp[key][0]:trim_lamp[key][1], trim_lamp[key][2]:trim_lamp[key][3]])
             p_life[key], _ , _, _ = getCrd(frame_gpu_trim, mark_gpu_death, gpu_dst, pattern="mark")
             # プレイヤーのSP判定
@@ -206,7 +228,7 @@ def  main(in_path :str, out_path="C:/Users/ntkke/ProjectSplaly/output/csv"):
             # プレイヤー位置座標判定
             p_is[key], p_x[key], p_y[key], _ = getCrd(frame_gpu_gry, templ_gpu_player.get(key), gpu_dst, pattern="mark")
 
-        # nanが連続したとき、finish画像とマッチングしたら、計測終了
+        # 位置座標のnanが連続したとき、finish画像とマッチングしたら、計測終了
         if not any(p_is.values()) and flag_time_start == 1:
             frame_gpu_trim.upload(frame_gry[trim["f"][0]:trim["f"][1], trim["f"][2]:trim["f"][3]])
             is_fin, _, _, _ = getCrd(frame_gpu_trim, mark_gpu_finish, gpu_dst, pattern="mark")
@@ -239,9 +261,8 @@ def  main(in_path :str, out_path="C:/Users/ntkke/ProjectSplaly/output/csv"):
 
 if __name__ == "__main__":
     # 入力動画と出力先
-    in_dir1    = "C:/Users/ntkke/Videos/Spla3Video/BattleMemory"
-    in_dir2    = "C:/Users/ntkke/ProjectSplaly/data/sample_video"
-    in_path   = os.path.join(in_dir2, sys.argv[1])
+    in_dir  = "../../data/sample_video"
+    in_path = os.path.join(in_dir, sys.argv[1])
 
     import timeit
     time_func = timeit.timeit("main(in_path)", globals=globals(), number=1)
