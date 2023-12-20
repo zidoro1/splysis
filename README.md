@@ -50,6 +50,7 @@ nan,nan,nan,1,nan,nan,nan,1,nan,nan,nan,1,nan,nan,nan,1,nan,nan,nan,1,1658,173,n
 ## 自動化のコード
 自動化ツールは、最新のバトルメモリーから
 一例として、NX Macro Controllさんの場合、以下のコードで実行できる。
+
 """
     後々アップロードする
 """
