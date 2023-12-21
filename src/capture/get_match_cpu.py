@@ -2,9 +2,6 @@ import os
 import sys
 import cv2
 import numpy as np
-from statistics import mode
-
-from set_class import MyCudaStruct
 
 # プレイヤー座標を採取する関数
 def getCrdCpu(img, templ, pattern):
@@ -51,13 +48,13 @@ def getNumCpu(img, dic_templ, pattern):
 
     pixel     = {"ymdhm": 8,    "np": 8,    "score": 6,    "sp": 7}    # 数値の位の間にあるべき最小限のpixel幅
     maximum   = {"ymdhm": 12,   "np": 4,    "score": 2,    "sp": 2}    # 数値の桁数上限
-    threshold = {"ymdhm": 0.7,  "np": 0.7,  "score": 0.67, "sp": 0.65}
+    threshold = {"ymdhm": 0.7,  "np": 0.7,  "score": 0.7, "sp": 0.65}
     eps       = {"ymdhm": 0.4,  "np": 0.4,  "score": 0.4,  "sp": 0.4}
 
     dic_match_score = {}
     dic_match_range = []
     for key in dic_templ.keys():
-        result  =  cv2.matchTemplate(img, dic_templ, cv2.TM_CCOEFF_NORMED)
+        result  =  cv2.matchTemplate(img, dic_templ[key], cv2.TM_CCOEFF_NORMED)
         dic_match_score[key] = result       # ソース画像すべての領域のマッチングスコアを数字の数だけ保存
         _, max_val, _, _ = cv2.minMaxLoc(result) # 検証用
         match_y, match_x = np.where(result >= threshold[pattern])
@@ -143,7 +140,7 @@ def getNumCpu(img, dic_templ, pattern):
 ###################################################################################
 # コマンドライン実行
 if __name__ == "__main__":
-    in_dir    = "../../data/sample_frame/sample_result_gry"
+    in_dir    = "../../data/sample_frame/result"
     templ_dir = "../../data/templates/num/num_battlelog_gry"
 
     # テンプレート画像のpathを二次元の辞書型にして一括管理
@@ -163,11 +160,11 @@ if __name__ == "__main__":
         # num_0.png -> "num_0": "C:~/~~/~/num_0.png" 
         dic_fname_path[key] = {os.path.splitext(f)[0]: os.path.join(value, f) for f in os.listdir(value) if os.path.isfile(os.path.join(value, f))}
 
-    templ_gpu_ymdhm = {}
-    templ_gpu_np    = {}
-    templ_gpu_score = {}
-    templ_gpu_buki  = {}
-    frame_gpu_trim  = []
+    templ_ymdhm = {}
+    templ_np    = {}
+    templ_score = {}
+    templ_buki  = {}
+    frame_trim  = []
 
     trim = {
         "h" : [  59,  180,  800, 1500],  # ヘッダー
@@ -185,13 +182,13 @@ if __name__ == "__main__":
 
     templ_img = {}
     for fname, path in dic_fname_path["ymdhm"].items():
-        templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        templ_ymdhm[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     for fname, path in dic_fname_path["np"].items():
-        templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        templ_np[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     for fname, path in dic_fname_path["score"].items():
-        templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        templ_score[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     for fname, path in dic_fname_path["buki"].items():
-        templ_img[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        templ_buki[fname] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
 
     #"""
